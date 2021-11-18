@@ -14,11 +14,14 @@ Following https://tanzucommunityedition.io/docs/latest/getting-started/#creating
    ```sh
    Error: required config variable 'CLUSTER_PLAN' not set
    ```
-4. Need to set up cluster configuration file. See: https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.4/vmware-tanzu-kubernetes-grid-14/GUID-tanzu-k8s-clusters-index.html#create-a-tanzu-kubernetes-cluster-configuration-file-1.
+4. Need to set up cluster configuration file. See:
+   - https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.4/vmware-tanzu-kubernetes-grid-14/GUID-tanzu-k8s-clusters-index.html#create-a-tanzu-kubernetes-cluster-configuration-file-1.
+   - https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.4/vmware-tanzu-kubernetes-grid-14/GUID-tanzu-config-reference.html
    ```sh
    cp ~/.config/tanzu/tkg/clusterconfigs/owlffnk3hh.yaml first-tanzu-mgmt.yaml.copy
    cp first-tanzu-mgmt.yaml.copy first-tanzu-workload.yaml
    # modify the contents for workload.yaml
+   # add CLUSTER_PLAN to the configuration file
    ```
 5. xxx
 
