@@ -2,7 +2,7 @@
 
 ## Installation Steps:
 
-Following https://tanzucommunityedition.io/docs/latest/getting-started/#creating-clusters .
+Following https://tanzucommunityedition.io/docs/latest/getting-started .
 
 ### Notes:
 1. Default Kubernetes Settings (local docker)
@@ -14,7 +14,7 @@ Following https://tanzucommunityedition.io/docs/latest/getting-started/#creating
    ```sh
    Error: required config variable 'CLUSTER_PLAN' not set
    ```
-4. Need to set up cluster configuration file. See:
+4. Workload cluster created successfully with cluster configuration file. See:
    - https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.4/vmware-tanzu-kubernetes-grid-14/GUID-tanzu-k8s-clusters-index.html#create-a-tanzu-kubernetes-cluster-configuration-file-1.
    - https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.4/vmware-tanzu-kubernetes-grid-14/GUID-tanzu-config-reference.html
    ```sh
@@ -23,7 +23,25 @@ Following https://tanzucommunityedition.io/docs/latest/getting-started/#creating
    # modify the contents for workload.yaml
    # add CLUSTER_PLAN to the configuration file
    ```
-5. xxx
+5. The default configuration deployed the following into the 2 types of cluster.
+   - `*` : denotes deployment in `tkg-system` namespace, in master and worker nodes in both clusters
+   - additional namespace in management cluster:
+     - `capd-system`, `capi-system` : just one controller manager in worker node
+     - `capi-kubeadm-*` and `capi-webhook-system`
+
+        | Components       | Management Cluster | Workload Cluster | Behaviour
+        | :--------------- | :----------------: | :--------------: | :--------------- |
+        | antrea (CNI)     | Y <br/> controller on master node | Y <br/>controller on worker node | antrea-agents on master and worker nodes |
+        | coredns          | Y | Y | on worker node only |
+        | metrics-server   | Y | Y | on worker node only |
+        | kapp-controller* | on worker node only | on master node only | - |
+        | tanzu-cap <br/> controller-manager* | on master nodes only | on worker nodes only | - |
+        | tkr-controller-manager* | on worker node only <br/> with another addons pod | N | - |
+        | cert-manager            | on worker node with a <br/> webhook pod on master node | N | - |
+6. How to verify if the workload cluster is managed by the management cluster?
+   - To read on how management cluster works:
+     - [ ] https://cluster-api.sigs.k8s.io/
+     - [ ] https://kind.sigs.k8s.io/
 
 ### Actual commands in terminal (MacOS):
 
@@ -37,18 +55,36 @@ tanzu management-cluster create --file ~/.config/tanzu/tkg/clusterconfigs/owlffn
 # Validate mgmt cluster creation
 tanzu management-cluster get
 
-# Get credential into kubectl
-# tanzu management-cluster kubeconfig get <MGMT-CLUSTER-NAME> --admin
+# Validate access to the mgmt cluster
 # MGMT-CLUSTER-NAME=first-tanzu-mgmt
-tanzu management-cluster kubeconfig get first-tanzu-mgmt --admin
+tanzu management-cluster kubeconfig get first-tanzu-mgmt --admin # Get credential into kubectl
+kubectl config use-context first-tanzu-mgmt-admin@first-tanzu-mgmt
+kubectl get nodes
+kubectl get pods -A # checkout what were deployed =)
 
 # Create workload cluster. The guide is not working, see Notes #3.
 # from installation output, run “tanzu cluster create [name] -f [file]”
 # from guide, run “tanzu cluster create <WORKLOAD-CLUSTER-NAME> --plan dev”
 # WORKLOAD-CLUSTER-NAME=first-tanzu-workload
+tanzu cluster create --file ./first-tanzu-workload.yaml
 
+# Verify workload cluster creation
+tanzu cluster list
+tanzu cluster get first-tanzu-workload
 
+# Validate access to the workload cluster
+tanzu cluster kubeconfig get first-tanzu-workload --admin
+kubectl config use-context first-tanzu-workload-admin@first-tanzu-workload
+kubectl get nodes
+kubectl get pods -A # checkout what were deployed =)
+
+# How to confirm if the workload cluster is actually managed by management cluster?
+tanzu management-cluster get # doesn't mention on workload clusters
 ```
+
+### Useful references:
+- https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.4/vmware-tanzu-kubernetes-grid-14/GUID-tanzu-cli-reference.html
+- https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.4/vmware-tanzu-kubernetes-grid-14/GUID-tanzu-config-reference.html
 
 —
 
