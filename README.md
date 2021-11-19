@@ -116,7 +116,42 @@ tanzu management-cluster get # doesn't mention on workload clusters
 - https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.4/vmware-tanzu-kubernetes-grid-14/GUID-tanzu-cli-reference.html
 - https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.4/vmware-tanzu-kubernetes-grid-14/GUID-tanzu-config-reference.html
 
-—
+—--
+
+## Package Management
+
+### Installing package in Workload Cluster
+
+Try with: https://tanzucommunityedition.io/docs/latest/package-readme-fluent-bit-1.7.5/
+
+```sh
+# Install Tanzu Community Edition package repo into global namespace in the cluster
+tanzu package repository add tce-repo --url projects.registry.vmware.com/tce/main:0.9.1 --namespace tanzu-package-repo-global
+# Check status of repo and list available packages
+tanzu package repository list --namespace tanzu-package-repo-global
+tanzu package available list
+
+# List available versions for a specific package
+tanzu package available list fluent-bit.community.tanzu.vmware.com
+
+# Install
+tanzu package install fluent-bit --package-name fluent-bit.community.tanzu.vmware.com --version 1.7.5
+# Verify
+tanzu package installed list
+kubectl get pods -A
+kubectl get daemonset -A
+kubectl logs -f daemonset/fluent-bit -n fluent-bit # see logs from all pods
+
+# Remove a package from the cluster
+tanzu package installed delete fluent-bit
+# Verify
+kubectl get daemonset -A
+```
+### More to explore
+- [ ] [Deploy monitoring stack on Tanzu Community Edition](https://tanzucommunityedition.io/docs/latest/docker-monitoring-stack/#deploying-grafana--prometheus--contour--local-path-storage--cert-manager-on-tanzu-community-edition)
+- [ ] [Package Creation](https://tanzucommunityedition.io/docs/latest/package-creation-step-by-step/)
+  - required to use [Carvel suite of tools](https://carvel.dev/), a VMware-backed project
+---
 
 ## Planning for clean up:
 
