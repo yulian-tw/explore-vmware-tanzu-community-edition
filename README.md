@@ -43,6 +43,32 @@ Following https://tanzucommunityedition.io/docs/latest/getting-started .
      - [ ] https://cluster-api.sigs.k8s.io/
      - [ ] https://kind.sigs.k8s.io/
 
+### Known issue:
+1. If the Docker host machine is rebooted, the cluster will need to be re-created. Support for clusters surviving a host reboot is tracked in [GitHub issue](https://github.com/vmware-tanzu/community-edition/issues/832).
+   - If using local docker, need to stop all Tanzu containers.
+      ```sh
+      # will get an error
+      tanzu management-cluster get
+
+      # confirm and stop Tanzu containers
+      docker ps -a
+      docker stop $(docker ps -qa)
+
+      # this still keeps some reference to be cleaned up
+      tanzu config server list
+      kind get clusters
+      # clean up commands
+      tanzu config server delete first-tanzu-mgmt
+      kind delete clusters ...
+
+      # create the management and workload clusters again
+      tanzu management-cluster create --ui
+      ...
+      # need to get the new cluster admin credentials to access the cluster
+      tanzu cluster kubeconfig get first-tanzu-workload --admin
+      kubectl get pods -A
+      ```
+
 ### Actual commands in terminal (MacOS):
 
 ```sh
@@ -50,7 +76,11 @@ Following https://tanzucommunityedition.io/docs/latest/getting-started .
 brew install vmware-tanzu/tanzu/tansu-community-edition
 /usr/local/Cellar/tanzu-community-edition/v0.9.1/libexec/configure-tce.sh
 
-tanzu management-cluster create --file ~/.config/tanzu/tkg/clusterconfigs/owlffnk3hh.yaml -v 6
+# Through UI, create a bootstrap cluster and generate cluster config for management cluster
+tanzu management-cluster create --ui
+# equivalent to
+# tanzu management-cluster create --file ~/.config/tanzu/tkg/clusterconfigs/owlffnk3hh.yaml -v 6
+cp ~/.config/tanzu/tkg/clusterconfigs/owlffnk3hh.yaml ./first-tanzu-mgmt.yaml
 
 # Validate mgmt cluster creation
 tanzu management-cluster get
